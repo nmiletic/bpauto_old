@@ -172,12 +172,18 @@ def main():
         conf = yaml.load(configfile)
 
     autobp = AutoBP(conf)
-    network = autobp.generate_network()
-    network.generate_interfaces()
-    network.generate_vlans()
-    network.generate_ip_routers()
-    network.generate_hosts()
-    network.save()
+    if 'Network' in conf:
+        network = autobp.generate_network()
+        if 'Interfaces' in conf['Network']:
+            network.generate_interfaces()
+        if 'VLANs' in conf['Network']:
+            network.generate_vlans()
+        if 'IP Routers' in conf['Network']:
+            network.generate_ip_routers()
+        if 'IP Static Hosts' in conf['Network']:
+            network.generate_hosts()
+        network.save()
+
     autobp.save()
 
 
