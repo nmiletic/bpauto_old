@@ -5,6 +5,7 @@ from io import StringIO
 import yaml
 from itertools import cycle
 from bp import BreakingPoint
+import argparse
 
 class AutoNetwork(object):
 
@@ -142,12 +143,10 @@ class AutoNetwork(object):
 
 class AutoBP(object):
 
-    def __init__(self, configfilename):
-        with open(configfilename) as configfile:
-            self._conf = yaml.load(configfile)
-        self._conn_conf = self._conf['Connection']
-        self._gen_conf = self._conf['General']
-        self._net_conf = self._conf['Network']
+    def __init__(self, conf):
+        self._conn_conf = conf['Connection']
+        self._gen_conf = conf['General']
+        self._net_conf = conf['Network']
 
         self._bps = BreakingPoint(prefix=self._gen_conf['Prefix'])
         self._bps.connect(hostname=self._conn_conf['Tester IP'])
@@ -159,9 +158,20 @@ class AutoBP(object):
     def save(self):
         self._bps.save()
 
+
 def main():
 
-    autobp = AutoBP('conf.yaml')
+    parser = argparse.ArgumentParser(
+                 description='BP test automation.')
+    parser.add_argument('-c', '--conf', metavar='conf.yaml',
+               help='Produce TCL files from configuration file.')
+
+    args = parser.parse_args()
+
+    with open(args.conf) as configfile:
+        conf = yaml.load(configfile)
+
+    autobp = AutoBP(conf)
     network = autobp.generate_network()
     network.generate_interfaces()
     network.generate_vlans()
