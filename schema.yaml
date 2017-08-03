@@ -1,0 +1,162 @@
+type: map
+mapping:
+  General:
+    type: map
+    required: True
+    mapping:
+      Prefix:
+        type: str
+        required: True
+  Connection:
+    type: map
+    required: True
+    mapping:
+      Tester IP:
+        type: str
+        pattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$
+        required: True
+      Login:
+        type: str
+        required: True
+      Password:
+        type: str
+        required: True
+  Network:
+    type: map
+    required: True
+    mapping:
+      Name:
+        type: str
+        required: True
+      Interfaces:
+        type: seq
+        required: True
+        sequence:
+          - type: map
+            mapping:
+              Name:
+                type: str
+                required: True
+              Duplicate MAC address:
+                type: bool
+                required: True
+              Count:
+                type: int
+                required: True
+              Start Number:
+                type: int
+                required: True
+              Increment:
+                type: int
+                required: True
+      VLANs:
+        type: seq
+        required: True
+        sequence:
+          - type: map
+            mapping:
+              Name:
+                type: str
+                required: True
+              Container:
+                type: str
+                required: True
+              Duplicate MAC address:
+                type: bool
+                required: True
+              VLAN ID:
+                type: int
+                required: True
+                range:
+                  min: 0
+                  max: 4096
+              Increment:
+                type: int
+                required: True
+              Count:
+                type: int
+                required: True
+                range:
+                  min: 1
+                  max: 4096
+      IP Routers:
+        type: seq
+        required: True
+        sequence:
+          - type: map
+            mapping:
+              Name:
+                type: str
+                required: True
+              Container:
+                type: str
+                required: True
+              IP Address:
+                type: str
+                required: True
+                pattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$
+              Netmask:
+                type: int
+                required: True
+                range:
+                  min: 1
+                  max: 32
+              Gateway:
+                type: str
+                required: True
+                pattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$
+              Increment Mask:
+                type: str
+                required: True
+                pattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$
+              Count:
+                type: int
+                required: True
+                range:
+                  min: 1
+                  max: 1000
+      IP Static Hosts:
+        type: seq
+        required: True
+        sequence:
+          - type: map
+            mapping:
+              Name:
+                type: str
+                required: True
+              Container:
+                type: str
+                required: True
+              IP Address:
+                type: str
+                required: True
+                pattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$
+              IP Count:
+                type: int
+                required: True
+                range:
+                  min: 1
+                  max: 10000
+              Netmask:
+                type: int
+                required: True
+                range:
+                  min: 1
+                  max: 32
+              Gateway:
+                type: str
+                required: True
+                pattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$
+              Increment Mask:
+                type: str
+                required: True
+                pattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$
+              Count:
+                type: int
+                required: True
+                range:
+                  min: 1
+                  max: 1000
+              Path:
+                type: str
+                required: True
