@@ -6,6 +6,7 @@ import yaml
 from itertools import cycle
 from bp import BreakingPoint
 import argparse
+from pykwalify.core import Core
 
 class AutoNetwork(object):
 
@@ -167,6 +168,9 @@ def main():
                help='Produce TCL files from configuration file.')
 
     args = parser.parse_args()
+
+    c = Core(source_file=args.conf, schema_files=["schema.yaml"])
+    c.validate(raise_exception=True)
 
     with open(args.conf) as configfile:
         conf = yaml.load(configfile)
