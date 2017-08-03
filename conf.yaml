@@ -1,13 +1,13 @@
 General:
-  Prefix: "POC999 "
+  Prefix: "Test "
 
 Connection:
-  Tester IP: 10.193.54.20
-  Login: nmiletic
-  Password: nmiletic
+  Tester IP: 192.168.1.1
+  Login: admin
+  Password: admin
 
 Network:
-  Name: Nemanja Automation NN
+  Name: NN
   Interfaces:
     - Name: ClientInt
       Duplicate MAC address: True
