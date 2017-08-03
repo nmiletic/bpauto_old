@@ -30,7 +30,7 @@ mapping:
         required: True
       Interfaces:
         type: seq
-        required: True
+        required: False
         sequence:
           - type: map
             mapping:
@@ -51,7 +51,7 @@ mapping:
                 required: True
       VLANs:
         type: seq
-        required: True
+        required: False
         sequence:
           - type: map
             mapping:
@@ -81,7 +81,7 @@ mapping:
                   max: 4096
       IP Routers:
         type: seq
-        required: True
+        required: False
         sequence:
           - type: map
             mapping:
@@ -117,7 +117,7 @@ mapping:
                   max: 1000
       IP Static Hosts:
         type: seq
-        required: True
+        required: False
         sequence:
           - type: map
             mapping:
