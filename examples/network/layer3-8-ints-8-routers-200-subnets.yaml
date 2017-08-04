@@ -1,0 +1,55 @@
+General:
+  Prefix: "POC999 "
+
+Connection:
+  Tester IP: 192.168.1.1
+  Login: admin
+  Password: admin
+
+Network:
+  Name: NN
+  Interfaces:
+    - Name: ClientInt
+      Duplicate MAC address: False
+      Count: 4
+      Start Number: 1
+      Increment: 1
+    - Name: ServerInt
+      Duplicate MAC address: False
+      Count: 4 
+      Start Number: 2
+      Increment: 1
+  IP Routers:
+    - Name: ClientRouter
+      Container: ClientInt
+      IP Address: 10.1.1.1
+      Netmask: 24
+      Gateway: 10.1.1.254
+      Increment Mask: 0.0.1.0
+      Count: 4
+    - Name: ServerRouter
+      Container: ClientInt
+      IP Address: 20.1.1.1
+      Netmask: 24
+      Gateway: 20.1.1.254
+      Increment Mask: 0.0.1.0
+      Count: 4
+  IP Static Hosts:
+    - Name: Clients
+      Container: ClientRouter
+      IP Address: 100.1.1.1
+      IP Count: 50
+      Netmask: 24
+      Gateway: null
+      Increment Mask: 0.0.10.0
+      Count: 100
+      Path: Servers
+    - Name: Servers 
+      Container: ServerRouter
+      IP Address: 200.1.1.1
+      IP Count: 50
+      Netmask: 24
+      Gateway: null
+      Increment Mask: 0.0.10.0
+      Count: 100
+      Path: Clients

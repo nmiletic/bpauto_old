@@ -1,0 +1,53 @@
+General:
+  Prefix: "POC999 "
+
+Connection:
+  Tester IP: 192.168.1.1
+  Login: admin
+  Password: admin
+
+Network:
+  Name: NN
+  Interfaces:
+    - Name: ClientInt
+      Duplicate MAC address: False
+      Count: 4
+      Start Number: 1
+      Increment: 1
+    - Name: ServerInt
+      Duplicate MAC address: False
+      Count: 4 
+      Start Number: 2
+      Increment: 1
+  VLANs:
+    - Name: ClientVLAN
+      Container: ClientInt
+      Duplicate MAC address: True
+      VLAN ID: 100
+      Increment: 1
+      Count: 100
+    - Name: ServerVLAN
+      Container: ServerInt
+      Duplicate MAC address: True
+      VLAN ID: 200
+      Increment: 1
+      Count: 100
+  IP Static Hosts:
+    - Name: Clients
+      Container: ClientVLAN
+      IP Address: 100.1.1.1
+      IP Count: 50
+      Netmask: 24
+      Gateway: 100.1.1.254
+      Increment Mask: 0.3.0.0
+      Count: 100
+      Path: Servers
+    - Name: Servers 
+      Container: ServerVLAN
+      IP Address: 200.1.1.1
+      IP Count: 50
+      Netmask: 24
+      Gateway: 200.1.1.254
+      Increment Mask: 0.3.0.0
+      Count: 100
+      Path: Clients
