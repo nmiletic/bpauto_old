@@ -79,18 +79,31 @@ class Network(object):
         self._containers.append(name)
 
     def add_ip_static_hosts(self, name, tag, container, ip_address, count, netmask, gateway):
-        command = ('$n add ip_static_hosts -id "{NAME}" '
-                   '-tags [list "{NAME}" "{TAG}"] '
-                   '-default_container "{CONTAINER}" -ip_address "{IP}" '
-                   '-count {COUNT} -netmask {NETMASK} '
-                   '-gateway_ip_address "{GATEWAY}"')
-        self.tfiles.pcreate(command.format(NAME=name,
-                                           TAG=tag,
-                                           CONTAINER=container,
-                                           IP=ip_address,
-                                           COUNT=count,
-                                           NETMASK=netmask,
-                                           GATEWAY=gateway))
+        if gateway is not None:
+            command = ('$n add ip_static_hosts -id "{NAME}" '
+                       '-tags [list "{NAME}" "{TAG}"] '
+                       '-default_container "{CONTAINER}" -ip_address "{IP}" '
+                       '-count {COUNT} -netmask {NETMASK} '
+                       '-gateway_ip_address "{GATEWAY}"')
+            self.tfiles.pcreate(command.format(NAME=name,
+                                               TAG=tag,
+                                               CONTAINER=container,
+                                               IP=ip_address,
+                                               COUNT=count,
+                                               NETMASK=netmask,
+                                               GATEWAY=gateway))
+        else:
+            command = ('$n add ip_static_hosts -id "{NAME}" '
+                       '-tags [list "{NAME}" "{TAG}"] '
+                       '-default_container "{CONTAINER}" -ip_address "{IP}" '
+                       '-count {COUNT} -netmask {NETMASK}')
+            self.tfiles.pcreate(command.format(NAME=name,
+                                               TAG=tag,
+                                               CONTAINER=container,
+                                               IP=ip_address,
+                                               COUNT=count,
+                                               NETMASK=netmask))
+
         self._ip_static_hosts.append(name)
 
     def get_interface_group(self, prefix):

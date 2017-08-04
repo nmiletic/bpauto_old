@@ -118,7 +118,10 @@ class AutoNetwork(object):
 
         for hosts in self._net_conf['IP Static Hosts']:
            ip_address = self._get_ip_gen(hosts['IP Address'], hosts['Increment Mask'])
-           gw_address = self._get_ip_gen(hosts['Gateway'], hosts['Increment Mask'])
+           if hosts['Gateway'] is not None:
+               gw_address = self._get_ip_gen(hosts['Gateway'], hosts['Increment Mask'])
+           else:
+               gw_address = cycle([None])
            hosts_name = gen_hosts_name(hosts['Name'])
            tag = hosts['Name']
            container = cycle(self._network.get_container_group(hosts["Container"]))
@@ -182,7 +185,7 @@ def main():
         conf = yaml.load(configfile)
 
     if args.tester_ip:
-        conf['Connection']['Tester IP'] = args.tester-ip
+        conf['Connection']['Tester IP'] = args.tester_ip
     if args.login:
         conf['Connection']['Login'] = args.login
     if args.password:
