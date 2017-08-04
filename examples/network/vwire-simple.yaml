@@ -10,12 +10,12 @@ Network:
   Name: NN
   Interfaces:
     - Name: ClientInt
-      Duplicate MAC address: True
+      Duplicate MAC address: False
       Count: 4
       Start Number: 1
       Increment: 1
     - Name: ServerInt
-      Duplicate MAC address: True
+      Duplicate MAC address: False
       Count: 4 
       Start Number: 2
       Increment: 1

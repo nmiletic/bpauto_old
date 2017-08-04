@@ -54,11 +54,16 @@ class Network(object):
         self._ip_static_hosts = []
         self._paths = []
 
-    def add_interface(self, name, number, mac_address):
-        command = '$n add interface -number {NUMBER} -id "{ID}" -mac_address "{MAC}" -duplicate_mac_address 1'
+    def add_interface(self, name, number, mac_address, duplicate_mac_address=False):
+        if duplicate_mac_address:
+            duplicate_mac_address = 1
+        else:
+            duplicate_mac_address = 0
+        command = '$n add interface -number {NUMBER} -id "{ID}" -mac_address "{MAC}" -duplicate_mac_address {DMA}'
         self.tfiles.pcreate(command.format(NUMBER=number,
                                            ID=name,
-                                           MAC=mac_address))
+                                           MAC=mac_address,
+                                           DMA=duplicate_mac_address))
         self._interfaces.append(name)
         self._containers.append(name)
 

@@ -76,7 +76,10 @@ class AutoNetwork(object):
            int_num = gen_int_num(interface["Start Number"], interface["Increment"])
            int_name = gen_int_name(interface["Name"], interface["Start Number"], interface["Increment"])
            for _ in range(interface["Count"]):
-               self._network.add_interface(name=next(int_name), number=next(int_num), mac_address=next(int_mac))
+               self._network.add_interface(name=next(int_name),
+                                           number=next(int_num),
+                                           mac_address=next(int_mac),
+                                           duplicate_mac_address=interface['Duplicate MAC address'])
 
     def generate_vlans(self):
         def gen_vlan_id(start, inc):
