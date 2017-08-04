@@ -150,7 +150,7 @@ class AutoBP(object):
         self._net_conf = conf['Network']
 
         self._bps = BreakingPoint(prefix=self._gen_conf['Prefix'])
-        self._bps.connect(hostname=self._conn_conf['Tester IP'])
+        self._bps.connect(hostname=self._conn_conf['Tester IP'], login=self._conn_conf['Login'], password=self._conn_conf['Password'])
 
     def generate_network(self):
         self._network = AutoNetwork(self._net_conf, self._bps) 
@@ -164,16 +164,29 @@ def main():
 
     parser = argparse.ArgumentParser(
                  description='BP test automation.')
-    parser.add_argument('-c', '--conf', metavar='conf.yaml',
-               help='Produce TCL files from configuration file.')
+    parser.add_argument('config', metavar='conf.yaml',
+               help='Configuration file in yaml.')
+    parser.add_argument('-i', '--tester-ip',
+               help='Tester management password.')
+    parser.add_argument('-l', '--login',
+               help='Tester management login username.')
+    parser.add_argument('-p', '--password',
+               help='Tester management password.')
 
     args = parser.parse_args()
 
-    c = Core(source_file=args.conf, schema_files=["schema.yaml"])
+    c = Core(source_file=args.config, schema_files=["schema.yaml"])
     c.validate(raise_exception=True)
 
-    with open(args.conf) as configfile:
+    with open(args.config) as configfile:
         conf = yaml.load(configfile)
+
+    if args.tester_ip:
+        conf['Connection']['Tester IP'] = args.tester-ip
+    if args.login:
+        conf['Connection']['Login'] = args.login
+    if args.password:
+        conf['Connection']['Password'] = args.password
 
     autobp = AutoBP(conf)
     if 'Network' in conf:
