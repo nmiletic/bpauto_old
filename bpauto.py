@@ -7,6 +7,7 @@ from itertools import cycle
 from bp import BreakingPoint
 import argparse
 from pykwalify.core import Core
+from ipaddress import IPv4Address
 
 class AutoNetwork(object):
 
@@ -23,44 +24,12 @@ class AutoNetwork(object):
             for j in range(1, 255):
                 yield "02:1A:{:02x}:{:02x}:00:00".format(i, j)
 
-    def _get_ip_gen(self, ip_address, inc_mask):
-        def gen_ip_address1(template, start, inc):
-           for i in range(start, 255, inc):
-               yield template.format(i)
-
-        def gen_ip_address2(template, start1, start2, inc):
-           for i in range(start1, 255):
-               for j in range(start2, 255, inc):
-                   yield template.format(i, j)
-
-        octets = ip_address.split(sep='.')
-        mask = inc_mask.split(sep='.')
-        change_first = False
-        if mask[0] != '0':
-           start = octets[0]
-           inc = mask[0]
-           octets[0] = '{}'
-           change_first = True
-        elif mask[1] != '0':
-           start1 = octets[0]
-           start2 = octets[1]
-           inc = mask[1]
-           octets[0] = '{}'
-           octets[1] = '{}'
-        elif mask[2] !='0':
-           start1 = octets[1]
-           start2 = octets[2]
-           inc = mask[2]
-           octets[1] = '{}'
-           octets[2] = '{}'
-        elif mask[3] !='0':
-           raise ErrorError
-        template = '.'
-        template = template.join(octets)
-        if change_first:
-           return gen_ip_address1(template, int(start), int(inc))
-        else:
-           return gen_ip_address2(template, int(start1), int(start2), int(inc))
+    def _gen_ip(self, ip_address, inc_mask):
+        ip = IPv4Address(ip_address)
+        inc = IPv4Address(inc_mask)
+        while True:
+            ip = ip + int(inc)
+            yield ip
 
     def generate_interfaces(self):
        def gen_int_num(start, inc):
@@ -104,8 +73,8 @@ class AutoNetwork(object):
                yield prefix + str(i)
 
         for ip_routers in self._net_conf['IP Routers']:
-            ip_address = self._get_ip_gen(ip_routers['IP Address'], ip_routers['Increment Mask'])
-            gw_address = self._get_ip_gen(ip_routers['Gateway'], ip_routers['Increment Mask'])
+            ip_address = self._gen_ip(ip_routers['IP Address'], ip_routers['Increment Mask'])
+            gw_address = self._gen_ip(ip_routers['Gateway'], ip_routers['Increment Mask'])
             ip_router_name = gen_ip_router_name(ip_routers['Name'])
             container = cycle(self._network.get_container_group(ip_routers["Container"]))
 
@@ -120,9 +89,9 @@ class AutoNetwork(object):
                yield prefix + str(i)
 
         for hosts in self._net_conf['IP Static Hosts']:
-           ip_address = self._get_ip_gen(hosts['IP Address'], hosts['Increment Mask'])
+           ip_address = self._gen_ip(hosts['IP Address'], hosts['Increment Mask'])
            if hosts['Gateway'] is not None:
-               gw_address = self._get_ip_gen(hosts['Gateway'], hosts['Increment Mask'])
+               gw_address = self._gen_ip(hosts['Gateway'], hosts['Increment Mask'])
            else:
                gw_address = cycle([None])
            hosts_name = gen_hosts_name(hosts['Name'])
