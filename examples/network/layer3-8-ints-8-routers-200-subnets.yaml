@@ -13,12 +13,12 @@ Network:
       Duplicate MAC address: False
       Count: 4
       Start Number: 1
-      Increment: 1
+      Increment: 2
     - Name: ServerInt
       Duplicate MAC address: False
       Count: 4 
       Start Number: 2
-      Increment: 1
+      Increment: 2
   IP Routers:
     - Name: ClientRouter
       Container: ClientInt
