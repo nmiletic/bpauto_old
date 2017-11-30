@@ -97,19 +97,19 @@ Network:
       Path: Card1_Clients
     - Name: Card2_Clients
       Container: Card2_ClientInt
-      IP Address: 100.1.1.1
+      IP Address: 100.1.5.1
       IP Count: 100
       Netmask: 24
-      Gateway: 100.1.1.254
+      Gateway: 100.1.5.254
       Increment Mask: 0.0.1.0
       Count: 4
       Path: Card2_Servers
     - Name: Card2_Servers 
       Container: Card2_ServerInt
-      IP Address: 200.1.1.1
+      IP Address: 200.1.5.1
       IP Count: 100
       Netmask: 24
-      Gateway: 200.1.1.254
+      Gateway: 200.1.5.254
       Increment Mask: 0.0.1.0
       Count: 4
       Path: Card2_Clients
