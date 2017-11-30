@@ -1,0 +1,114 @@
+General:
+  Prefix: "POC111 "
+
+Connection:
+  Tester IP: 10.193.54.20
+  Login: nmiletic
+  Password: nmiletic
+
+FileUpload:
+  Tester IP: 10.193.54.20
+  Login: admin
+  Password: admin
+
+Super Flows:
+  - Name: HTTP
+    Application: HTTP
+    Transation Size: 256000
+  - Name: NFS
+    Application: NFSv3
+    Transation Size: 256000
+    File Type: asterisk
+  - Name: Oracle
+    Application: ORACLE_SELECT
+  - Name: HTTPS
+    Application: HTTPS_SIM
+    Transation Size: 100000
+
+Application Profiles:
+  - Name: AP
+    Weight According to: bandwidth
+    Super Flows:
+      - Name: NFS
+        Weight: 5180
+      - Name: HTTP
+        Weight: 2000
+      - Name: Oracle
+        Weight: 1000
+
+Test:
+  Name: App Mix
+  Network: NN
+  Components:
+#    - Name: Traffic mix
+    - Name: AUTOMATIC
+      Type: appsim
+      Application Profile: AP
+      Ramp Up Duration: 30
+      Steady State Duration: 180
+      Ramp Down Duration: 15
+      Max Sessions: 1000000
+      Max Sessions per sec: 1000
+      Client Tags: Clients
+      Server Tags: Servers
+
+Network:
+  Name: NN
+  Interfaces:
+    - Name: ClientInt
+      Duplicate MAC address: True
+      Count: 3 
+      Start Number: 1
+      Increment: 2
+    - Name: ServerInt
+      Duplicate MAC address: True
+      Count: 3 
+      Start Number: 2
+      Increment: 2
+  VLANs:
+    - Name: ClientVLAN
+      Container: ClientInt
+      Duplicate MAC address: True
+      VLAN ID: 100
+      Increment: 1
+      Count: 10
+    - Name: ServerVLAN
+      Container: ServerInt
+      Duplicate MAC address: True
+      VLAN ID: 100
+      Increment: 1
+      Count: 10
+  IP Routers:
+    - Name: ClientRouter
+      Container: ClientVLAN
+      IP Address: 10.1.1.1
+      Netmask: 24
+      Gateway: 10.1.1.254
+      Increment Mask: 0.0.1.0
+      Count: 10
+    - Name: ServerRouter
+      Container: ClientVLAN
+      IP Address: 20.1.1.1
+      Netmask: 24
+      Gateway: 20.1.1.254
+      Increment Mask: 0.0.1.0
+      Count: 10
+  IP Static Hosts:
+    - Name: Clients
+      Container: ClientRouter
+      IP Address: 100.1.1.1
+      IP Count: 100
+      Netmask: 24
+      Gateway: 100.1.1.254
+      Increment Mask: 0.0.1.0
+      Count: 10
+      Path: Servers
+    - Name: Servers 
+      Container: ServerRouter
+      IP Address: 200.1.1.1
+      IP Count: 100
+      Netmask: 24
+      Gateway: 200.1.1.254
+      Increment Mask: 0.0.1.0
+      Count: 10
+      Path: Clients
