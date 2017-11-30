@@ -1,5 +1,5 @@
 General:
-  Prefix: "POC111 "
+  Prefix: "ACME "
 
 Connection:
   Tester IP: 10.193.54.20
@@ -26,8 +26,9 @@ Super Flows:
     Transation Size: 100000
 
 Application Profiles:
-  - Name: AP
-    Weight According to: bandwidth
+  - Name: Traffic Mix
+#    Weight According to: bandwidth
+    Weight According to: flows
     Super Flows:
       - Name: NFS
         Weight: 5180
@@ -37,78 +38,78 @@ Application Profiles:
         Weight: 1000
 
 Test:
-  Name: App Mix
+  Name: POC111 App Mix
   Network: NN
   Components:
-#    - Name: Traffic mix
+#    - Name: Card 1 Traffic mix
     - Name: AUTOMATIC
       Type: appsim
-      Application Profile: AP
+      Application Profile: Traffic Mix
       Ramp Up Duration: 30
       Steady State Duration: 180
       Ramp Down Duration: 15
       Max Sessions: 1000000
       Max Sessions per sec: 1000
-      Client Tags: Clients
-      Server Tags: Servers
+      Client Tags: Card1_Clients
+      Server Tags: Card1_Servers
 
 Network:
   Name: NN
   Interfaces:
-    - Name: ClientInt
+    - Name: Card1_ClientInt
       Duplicate MAC address: True
-      Count: 3 
+      Count: 4
       Start Number: 1
       Increment: 2
-    - Name: ServerInt
+    - Name: Card1_ServerInt
       Duplicate MAC address: True
-      Count: 3 
+      Count: 4 
       Start Number: 2
       Increment: 2
-  VLANs:
-    - Name: ClientVLAN
-      Container: ClientInt
+    - Name: Card2_ClientInt
       Duplicate MAC address: True
-      VLAN ID: 100
-      Increment: 1
-      Count: 10
-    - Name: ServerVLAN
-      Container: ServerInt
+      Count: 4
+      Start Number: 5
+      Increment: 2
+    - Name: Card2_ServerInt
       Duplicate MAC address: True
-      VLAN ID: 100
-      Increment: 1
-      Count: 10
-  IP Routers:
-    - Name: ClientRouter
-      Container: ClientVLAN
-      IP Address: 10.1.1.1
-      Netmask: 24
-      Gateway: 10.1.1.254
-      Increment Mask: 0.0.1.0
-      Count: 10
-    - Name: ServerRouter
-      Container: ClientVLAN
-      IP Address: 20.1.1.1
-      Netmask: 24
-      Gateway: 20.1.1.254
-      Increment Mask: 0.0.1.0
-      Count: 10
+      Count: 4 
+      Start Number: 6
+      Increment: 2
   IP Static Hosts:
-    - Name: Clients
-      Container: ClientRouter
+    - Name: Card1_Clients
+      Container: Card1_ClientInt
       IP Address: 100.1.1.1
       IP Count: 100
       Netmask: 24
       Gateway: 100.1.1.254
       Increment Mask: 0.0.1.0
-      Count: 10
-      Path: Servers
-    - Name: Servers 
-      Container: ServerRouter
+      Count: 4
+      Path: Card1_Servers
+    - Name: Card1_Servers 
+      Container: Card1_ServerInt
       IP Address: 200.1.1.1
       IP Count: 100
       Netmask: 24
       Gateway: 200.1.1.254
       Increment Mask: 0.0.1.0
-      Count: 10
-      Path: Clients
+      Count: 4
+      Path: Card1_Clients
+    - Name: Card2_Clients
+      Container: Card2_ClientInt
+      IP Address: 100.1.1.1
+      IP Count: 100
+      Netmask: 24
+      Gateway: 100.1.1.254
+      Increment Mask: 0.0.1.0
+      Count: 4
+      Path: Card2_Servers
+    - Name: Card2_Servers 
+      Container: Card2_ServerInt
+      IP Address: 200.1.1.1
+      IP Count: 100
+      Netmask: 24
+      Gateway: 200.1.1.254
+      Increment Mask: 0.0.1.0
+      Count: 4
+      Path: Card2_Clients
