@@ -4,6 +4,7 @@
 from io import StringIO
 import yaml
 from itertools import cycle
+import importlib
 
 class TCLFiles(object):
     def __init__(self):
@@ -64,7 +65,10 @@ class BreakingPoint(object):
         command = ('set superflow [$bps createSuperflow -template {TMPL} -name "{NAME}"]')
         self.tfiles.pcreate(command.format(NAME=name, TMPL='TMPL_' + app))
 #        sf = Superflow(self.tfiles, self._prefix + name, app)
-        sf = globals()[app](self.tfiles, name, app)
+#        sf = globals()[app](self.tfiles, name, app)
+        m = importlib.import_module('superflow')
+        c = getattr(m, app)
+        sf = c(self.tfiles, name, app)
         self._superflows.append(sf)
         return sf
 
@@ -111,6 +115,7 @@ class Test(object):
         command = ('$bps deleteTest "{NAME}"')
         self.tfiles.pdelete(command.format(NAME=self._name))
 
+
 class Component(object):
     def __init__(self, tfiles, name):
         self._name = name
@@ -119,43 +124,6 @@ class Component(object):
     def configure(self, option, value):
         command = ('$comp configure {OPTION} {VALUE}')
         self.tfiles.pcreate(command.format(OPTION=option, VALUE=value))
-
-
-class SuperFlow(object):
-    def __init__(self, tfiles, name, app):
-        self.name = name
-        self._app = app
-        self.tfiles = tfiles
-
-    def modify(self, *, tsize=None, filename=None):
-        pass
-
-    def save(self):
-        command = ('$superflow save -force')
-        self.tfiles.pcreate(command)
-
-
-class HTTP(SuperFlow):
-    def modify(self, *, tsize=None, filename=None):
-        command = ('$superflow modifyAction 2 -response-data-gen-exact {TSIZE}')
-        self.tfiles.pcreate(command.format(TSIZE=tsize))
-
-class NFSv3(SuperFlow):
-    def modify(self, *, tsize=None, filename=None):
-        command = ('$superflow modifyAction 11 -datafile {FILENAME}')
-        self.tfiles.pcreate(command.format(FILENAME=filename))
-
-class ORACLE_SELECT(SuperFlow):
-    pass
-
-class HTTPS_SIM(SuperFlow):
-    def modify(self, *, tsize=None, filename=None):
-        if tsize < 7250:
-            tsize = 7250
-        loop = round((tsize - 5700)/1400)
-        for i in range(1, loop):
-            command = ('$superflow addAction 1 server application -appdata-min 1400 -appdata-max 1400')
-            self.tfiles.pcreate(command)
 
 
 class AppProfile(object):
