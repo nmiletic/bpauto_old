@@ -92,8 +92,8 @@ class AutoNetwork(object):
         ip = IPv4Address(ip_address)
         inc = IPv4Address(inc_mask)
         while True:
-            ip = ip + int(inc)
             yield ip
+            ip = ip + int(inc)
 
     def generate_interfaces(self):
        def gen_int_num(start, inc):
