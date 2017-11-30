@@ -21,6 +21,11 @@ class TCLFiles(object):
         with open(filename, 'w') as createfile:
             createfile.write(self._createbuf.getvalue())
 
+    def save_delete(self, prefix):
+        filename = prefix + 'delete.tcl'
+        with open(filename, 'w') as createfile:
+            createfile.write(self._deletebuf.getvalue())
+
 
 class BreakingPoint(object):
     def __init__(self, *, prefix=None):
@@ -29,14 +34,17 @@ class BreakingPoint(object):
         self._network = None
         self._test = None
         self._superflows = []
+        self._app_profiles = []
 
     def connect(self, *, hostname=None, login='admin', password='admin'):
         command = ('set bps [bps::connect "{HOSTNAME}" "{LOGIN}" "{PASSWORD}" '
                    '-onclose exit -shortcuts true]')
         self.tfiles.pcreate(command.format(HOSTNAME=hostname, LOGIN=login, PASSWORD=password))
+        self.tfiles.pdelete(command.format(HOSTNAME=hostname, LOGIN=login, PASSWORD=password))
 
     def save(self):
         self.tfiles.save_create(self._prefix)
+        self.tfiles.save_delete(self._prefix)
 
     def create_network(self, name='NN'):
         command = ('set n [$bps createNetwork -name "{NAME}"]')
@@ -49,22 +57,33 @@ class BreakingPoint(object):
     def create_test(self, name):
         command = ('set test [$bps createTest -name "{NAME}"]')
         self.tfiles.pcreate(command.format(NAME=name))
-        self._test = Test(self.tfiles, self._prefix + name)
+        self._test = Test(self.tfiles, name)
         return self._test
 
     def create_superflow(self, name, app):
         command = ('set superflow [$bps createSuperflow -template {TMPL} -name "{NAME}"]')
         self.tfiles.pcreate(command.format(NAME=name, TMPL='TMPL_' + app))
 #        sf = Superflow(self.tfiles, self._prefix + name, app)
-        sf = globals()[app](self.tfiles, self._prefix + name, app)
+        sf = globals()[app](self.tfiles, name, app)
         self._superflows.append(sf)
         return sf
+
+    def delete_superflows(self):
+        for superflow in self._superflows:
+            command = '$bps deleteSuperflow "{NAME}"'
+            self.tfiles.pdelete(command.format(NAME=superflow.name))
     
     def create_app_profile(self, name):
         command = ('set appprofile [$bps createAppProfile -name "{NAME}"]')
         self.tfiles.pcreate(command.format(NAME=name))
         ap = AppProfile(self.tfiles, name)
+        self._app_profiles.append(ap)
         return ap
+
+    def delete_app_profiles(self):
+        for app_profile in self._app_profiles:
+            command = '$bps deleteAppProfile "{NAME}"'
+            self.tfiles.pdelete(command.format(NAME=app_profile.name))
 
 
 class Test(object):
@@ -88,6 +107,10 @@ class Test(object):
         command = ('$test save -force')
         self.tfiles.pcreate(command)
 
+    def delete(self):
+        command = ('$bps deleteTest "{NAME}"')
+        self.tfiles.pdelete(command.format(NAME=self._name))
+
 class Component(object):
     def __init__(self, tfiles, name):
         self._name = name
@@ -100,7 +123,7 @@ class Component(object):
 
 class SuperFlow(object):
     def __init__(self, tfiles, name, app):
-        self._name = name
+        self.name = name
         self._app = app
         self.tfiles = tfiles
 
@@ -137,7 +160,7 @@ class HTTPS_SIM(SuperFlow):
 
 class AppProfile(object):
     def __init__(self, tfiles, name):
-        self._name = name
+        self.name = name
         self.tfiles = tfiles
     def configure(self, weight_type):
         command = ('$appprofile configure -weightType {WEIGHT_TYPE}')
@@ -240,6 +263,10 @@ class Network(object):
         command = ('$n commit\n'
                    '$n save -name "{NAME}" -force')
         self.tfiles.pcreate(command.format(NAME=self._name))
+
+    def delete(self):
+        command = ('$bps deleteNeighborhood "{NAME}"')
+        self.tfiles.pdelete(command.format(NAME=self._name))
 
 
 

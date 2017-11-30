@@ -66,6 +66,9 @@ class AutoTest(object):
     def save(self):
         self._test.save()
 
+    def delete(self):
+        self._test.delete()
+
 
 class AutoNetwork(object):
 
@@ -76,6 +79,9 @@ class AutoNetwork(object):
 
     def save(self):
         self._network.save()
+
+    def delete(self):
+        self._network.delete()
 
     def _gen_mac(self):
         for i in range(197, 255):
@@ -213,6 +219,9 @@ class AutoBP(object):
                 sf.modify(tsize=superflow['Transation Size'])
             sf.save()
 
+    def delete_superflows(self):
+        self._bps.delete_superflows()
+
     def generate_app_profiles(self):
         for app_profile in self._conf['Application Profiles']:
             ap = self._bps.create_app_profile(self._prefix + app_profile['Name'])
@@ -220,6 +229,9 @@ class AutoBP(object):
             for superflow in app_profile['Super Flows']:
                 ap.add_superflow(self._gen_conf['Prefix'] + superflow['Name'], superflow['Weight'])
             ap.save()
+
+    def delete_app_profiles(self):
+        self._bps.delete_app_profiles()
 
     def save(self):
         self._bps.save()
@@ -274,6 +286,10 @@ def main():
         test.generate_components()
         test.save()
 
+    test.delete()
+    network.delete()
+    autobp.delete_app_profiles()
+    autobp.delete_superflows()
     autobp.save()
 
 
