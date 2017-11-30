@@ -8,12 +8,70 @@ from bp import BreakingPoint
 import argparse
 from pykwalify.core import Core
 from ipaddress import IPv4Address
+from payload import PayloadFile
+from copy import deepcopy
+
+class AutoTest(object):
+
+    def __init__(self, prefix, test_conf, bps, app_profile_conf):
+        self._prefix = prefix
+        self._bps = bps
+        self._test_conf = test_conf
+        self._app_profile_conf = app_profile_conf
+        self._test = self._bps.create_test(name=self._prefix + test_conf['Name'])
+        self._test.configure('-neighborhood', '"{0}"'.format(self._prefix + test_conf['Network']))
+
+    def _gen_comp(self, comp_conf):
+        comp = self._test.create_component(comp_conf['Type'], comp_conf['Name'])
+        comp.configure('-description', '""')
+        comp.configure('-profile', '"{0}"'.format(comp_conf['Application Profile']))
+        comp.configure('-rampDist.up', comp_conf['Ramp Up Duration'])
+        comp.configure('-rampDist.upBehavior', 'full+data+close')
+        comp.configure('-rampDist.steady', comp_conf['Steady State Duration'])
+        comp.configure('-rampDist.steadyBehavior', 'cycle')
+        comp.configure('-rampDist.down', comp_conf['Ramp Down Duration'])
+        comp.configure('-rampDist.downBehavior', 'full')
+        comp.configure('-rampUpProfile.max', comp_conf['Max Sessions per sec'])
+        comp.configure('-rampUpProfile.interval', '1')
+        comp.configure('-rampUpProfile.min', '1')
+        comp.configure('-rampUpProfile.type', 'step')
+        comp.configure('-rateDist.scope', 'per_if')
+        increment = max(1, round(comp_conf['Max Sessions per sec']/comp_conf['Ramp Up Duration']))
+        comp.configure('-rampUpProfile.increment', increment)
+        comp.configure('-sessions.max', comp_conf['Max Sessions'])
+        comp.configure('-sessions.maxPerSecond', comp_conf['Max Sessions per sec'])
+        comp.configure('-tcp.retries', '7')
+        comp.configure('-tcp.retry_quantum_ms', '2000')
+        comp.configure('-srcPortDist.type', 'range')
+        comp.configure('-client_tags', comp_conf['Client Tags'])
+        comp.configure('-server_tags', comp_conf['Server Tags'])
+
+    def generate_components(self):
+        for comp_conf in self._test_conf['Components']:
+            if comp_conf['Name'] == 'AUTOMATIC':
+                profile = next(item for item in self._app_profile_conf if item['Name'] == comp_conf['Application Profile'])
+                comp_conf_cpy = deepcopy(comp_conf)
+                total_weight = sum(superflow['Weight'] for superflow in profile['Super Flows'])
+                for superflow in profile['Super Flows']:
+                    ap = self._bps.create_app_profile(self._prefix + superflow['Name'] + ' ap')
+                    ap.add_superflow(self._prefix + superflow['Name'], 100)
+                    ap.save()
+                    comp_conf_cpy['Name'] = superflow['Name']
+                    comp_conf_cpy['Application Profile'] = self._prefix + superflow['Name'] + ' ap'
+                    comp_conf_cpy['Max Sessions per sec'] = round((superflow['Weight']/total_weight)*comp_conf['Max Sessions per sec'])
+                    self._gen_comp(comp_conf_cpy)
+            else:
+                self._gen_comp(comp_conf)
+            
+    def save(self):
+        self._test.save()
+
 
 class AutoNetwork(object):
 
-    def __init__(self, net_conf, bps):
+    def __init__(self, prefix, net_conf, bps):
         self._net_conf = net_conf
-        self._network = bps.create_network(name=net_conf["Name"])
+        self._network = bps.create_network(name=prefix + net_conf["Name"])
         self._mac = self._gen_mac()
 
     def save(self):
@@ -120,16 +178,48 @@ class AutoNetwork(object):
 class AutoBP(object):
 
     def __init__(self, conf):
+        self._conf = conf
         self._conn_conf = conf['Connection']
         self._gen_conf = conf['General']
-        self._net_conf = conf['Network']
+        self._prefix=self._gen_conf['Prefix']
 
-        self._bps = BreakingPoint(prefix=self._gen_conf['Prefix'])
+        self._bps = BreakingPoint(prefix=self._prefix)
         self._bps.connect(hostname=self._conn_conf['Tester IP'], login=self._conn_conf['Login'], password=self._conn_conf['Password'])
 
     def generate_network(self):
-        self._network = AutoNetwork(self._net_conf, self._bps) 
+        self._net_conf = self._conf['Network']
+        self._network = AutoNetwork(self._prefix, self._net_conf, self._bps) 
         return self._network
+
+    def generate_test(self):
+        self._test_conf = self._conf['Test']
+        self._app_profile_conf = self._conf['Application Profiles']
+        self._test = AutoTest(self._prefix, self._test_conf, self._bps, self._app_profile_conf) 
+        return self._test
+
+    def generate_superflows(self):
+        payload = PayloadFile()
+        upload_conf = self._conf['FileUpload']
+        for superflow in self._conf['Super Flows']:
+            sf = self._bps.create_superflow(self._prefix + superflow['Name'], superflow['Application'])
+            if 'File Type' in superflow:
+                filename = self._gen_conf['Prefix'] + superflow['File Type'] + str(superflow['Transation Size'])
+                filename = filename.replace(" ", "_")
+                payload.generate_file(filename, superflow['Transation Size'], superflow['File Type'])
+                payload.upload_file(filename, upload_conf['Tester IP'], upload_conf['Login'], upload_conf['Password'])
+
+                sf.modify(tsize=superflow['Transation Size'], filename=filename)
+            elif 'Transation Size' in superflow:
+                sf.modify(tsize=superflow['Transation Size'])
+            sf.save()
+
+    def generate_app_profiles(self):
+        for app_profile in self._conf['Application Profiles']:
+            ap = self._bps.create_app_profile(self._prefix + app_profile['Name'])
+            ap.configure(app_profile['Weight According to'])
+            for superflow in app_profile['Super Flows']:
+                ap.add_superflow(self._gen_conf['Prefix'] + superflow['Name'], superflow['Weight'])
+            ap.save()
 
     def save(self):
         self._bps.save()
@@ -150,8 +240,8 @@ def main():
 
     args = parser.parse_args()
 
-    c = Core(source_file=args.config, schema_files=["schema.yaml"])
-    c.validate(raise_exception=True)
+#    c = Core(source_file=args.config, schema_files=["schema.yaml"])
+#    c.validate(raise_exception=True)
 
     with open(args.config) as configfile:
         conf = yaml.load(configfile)
@@ -175,6 +265,14 @@ def main():
         if 'IP Static Hosts' in conf['Network']:
             network.generate_hosts()
         network.save()
+    if 'Super Flows' in conf:
+        autobp.generate_superflows()
+    if 'Application Profiles' in conf:
+        autobp.generate_app_profiles()
+    if 'Test' in conf:
+        test = autobp.generate_test()
+        test.generate_components()
+        test.save()
 
     autobp.save()
 

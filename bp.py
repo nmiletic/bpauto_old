@@ -27,6 +27,8 @@ class BreakingPoint(object):
         self._prefix = prefix
         self.tfiles = TCLFiles()
         self._network = None
+        self._test = None
+        self._superflows = []
 
     def connect(self, *, hostname=None, login='admin', password='admin'):
         command = ('set bps [bps::connect "{HOSTNAME}" "{LOGIN}" "{PASSWORD}" '
@@ -37,12 +39,115 @@ class BreakingPoint(object):
         self.tfiles.save_create(self._prefix)
 
     def create_network(self, name='NN'):
-        command = ('set n [$bps createNetwork -name "{PREFIX}{NAME}"]')
-        self.tfiles.pcreate(command.format(NAME=name, PREFIX=self._prefix))
-        self._network = Network(self.tfiles, self._prefix + name)
+        command = ('set n [$bps createNetwork -name "{NAME}"]')
+        self.tfiles.pcreate(command.format(NAME=name))
+        self._network = Network(self.tfiles, name)
         command = ('$n begin')
         self.tfiles.pcreate(command)
         return self._network
+
+    def create_test(self, name):
+        command = ('set test [$bps createTest -name "{NAME}"]')
+        self.tfiles.pcreate(command.format(NAME=name))
+        self._test = Test(self.tfiles, self._prefix + name)
+        return self._test
+
+    def create_superflow(self, name, app):
+        command = ('set superflow [$bps createSuperflow -template {TMPL} -name "{NAME}"]')
+        self.tfiles.pcreate(command.format(NAME=name, TMPL='TMPL_' + app))
+#        sf = Superflow(self.tfiles, self._prefix + name, app)
+        sf = globals()[app](self.tfiles, self._prefix + name, app)
+        self._superflows.append(sf)
+        return sf
+    
+    def create_app_profile(self, name):
+        command = ('set appprofile [$bps createAppProfile -name "{NAME}"]')
+        self.tfiles.pcreate(command.format(NAME=name))
+        ap = AppProfile(self.tfiles, name)
+        return ap
+
+
+class Test(object):
+    def __init__(self, tfiles, name):
+        self._name = name
+        self.tfiles = tfiles
+        self._components = []
+
+    def configure(self, option, value):
+        command = ('$test configure {OPTION} {VALUE}')
+        self.tfiles.pcreate(command.format(OPTION=option, VALUE=value))
+
+    def create_component(self, comp_type, name):
+        command = ('set comp [$test createComponent {COMP_TYPE} "{NAME}" 1 2]')
+        self.tfiles.pcreate(command.format(COMP_TYPE=comp_type, NAME=name))
+        comp = Component(self.tfiles, name)
+        self._components.append(comp)
+        return comp
+
+    def save(self):
+        command = ('$test save -force')
+        self.tfiles.pcreate(command)
+
+class Component(object):
+    def __init__(self, tfiles, name):
+        self._name = name
+        self.tfiles = tfiles
+
+    def configure(self, option, value):
+        command = ('$comp configure {OPTION} {VALUE}')
+        self.tfiles.pcreate(command.format(OPTION=option, VALUE=value))
+
+
+class SuperFlow(object):
+    def __init__(self, tfiles, name, app):
+        self._name = name
+        self._app = app
+        self.tfiles = tfiles
+
+    def modify(self, *, tsize=None, filename=None):
+        pass
+
+    def save(self):
+        command = ('$superflow save -force')
+        self.tfiles.pcreate(command)
+
+
+class HTTP(SuperFlow):
+    def modify(self, *, tsize=None, filename=None):
+        command = ('$superflow modifyAction 2 -response-data-gen-exact {TSIZE}')
+        self.tfiles.pcreate(command.format(TSIZE=tsize))
+
+class NFSv3(SuperFlow):
+    def modify(self, *, tsize=None, filename=None):
+        command = ('$superflow modifyAction 11 -datafile {FILENAME}')
+        self.tfiles.pcreate(command.format(FILENAME=filename))
+
+class ORACLE_SELECT(SuperFlow):
+    pass
+
+class HTTPS_SIM(SuperFlow):
+    def modify(self, *, tsize=None, filename=None):
+        if tsize < 7250:
+            tsize = 7250
+        loop = round((tsize - 5700)/1400)
+        for i in range(1, loop):
+            command = ('$superflow addAction 1 server application -appdata-min 1400 -appdata-max 1400')
+            self.tfiles.pcreate(command)
+
+
+class AppProfile(object):
+    def __init__(self, tfiles, name):
+        self._name = name
+        self.tfiles = tfiles
+    def configure(self, weight_type):
+        command = ('$appprofile configure -weightType {WEIGHT_TYPE}')
+        self.tfiles.pcreate(command.format(WEIGHT_TYPE=weight_type))
+    def add_superflow(self, name, weight):
+        command = ('$appprofile addSuperflow "{NAME}" {WEIGHT}')
+        self.tfiles.pcreate(command.format(NAME=name, WEIGHT=weight))
+    def save(self):
+        command = ('$appprofile save -force')
+        self.tfiles.pcreate(command)
 
 
 class Network(object):
@@ -140,6 +245,16 @@ class Network(object):
 
 
 def main():
+    bps = BreakingPoint(prefix='ASD')
+    bps.connect(hostname='1.1.1.1', login='admin', password='admin')
+    sf = bps.create_superflow('HTTP', 'HTTP')
+    sf.modify(tsize=12123)
+    sf.save()
+    ap = bps.create_app_profile('AP')
+    ap.configure('bandwidth')
+    ap.add_superflow('HTTP', 100) 
+    ap.save()
+    bps.save()
     pass
 
 if __name__ == "__main__":
