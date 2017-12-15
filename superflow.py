@@ -17,6 +17,11 @@ class HTTP(SuperFlow):
         command = ('$superflow modifyAction 2 -response-data-gen-exact {TSIZE}')
         self.tfiles.pcreate(command.format(TSIZE=tsize))
 
+class HTTPS_TLS12_RSA2K_AES256_SHA384_RESUME(SuperFlow):
+    def modify(self, *, tsize=None, filename=None):
+        command = ('$superflow modifyAction 4 -response-data-gen-exact {TSIZE}')
+        self.tfiles.pcreate(command.format(TSIZE=tsize))
+
 class GOOGLE_BASE(SuperFlow):
     def modify(self, *, tsize=None, filename=None):
         command = ('$superflow modifyAction 2 -response-data-gen-exact {TSIZE}')
