@@ -286,10 +286,15 @@ def main():
         test.generate_components()
         test.save()
 
-    test.delete()
-    network.delete()
-    autobp.delete_app_profiles()
-    autobp.delete_superflows()
+    if 'Test' in conf:
+        test.delete()
+    if 'Network' in conf:
+        network.delete()
+    if 'Application Profiles' in conf:
+        autobp.delete_app_profiles()
+    if 'Super Flows' in conf:
+        autobp.delete_superflows()
+
     autobp.save()
 
 
