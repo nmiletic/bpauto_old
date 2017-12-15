@@ -69,12 +69,12 @@ Network:
     - Name: Card2_ClientInt
       Duplicate MAC address: True
       Count: 4
-      Start Number: 5
+      Start Number: 9
       Increment: 2
     - Name: Card2_ServerInt
       Duplicate MAC address: True
       Count: 4 
-      Start Number: 6
+      Start Number: 10
       Increment: 2
   IP Static Hosts:
     - Name: Card1_Clients
