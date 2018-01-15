@@ -77,6 +77,11 @@ class SSH(SuperFlow):
         command = ('$superflow modifyAction 3 -raw_message_file {FILENAME}')
         self.tfiles.pcreate(command.format(FILENAME=filename))
 
+class QUIC(SuperFlow):
+    def modify(self, *, tsize=None, filename=None):
+        command = ('$superflow modifyAction 5 -stream_data_file {FILENAME}')
+        self.tfiles.pcreate(command.format(FILENAME=filename))
+
 class HTTPS_SIM(SuperFlow):
     def modify(self, *, tsize=None, filename=None):
         if tsize < 7250:
@@ -87,6 +92,33 @@ class HTTPS_SIM(SuperFlow):
             self.tfiles.pcreate(command)
 
 class GOOGLE_HTTPS(SuperFlow):
+    def modify(self, *, tsize=None, filename=None):
+        if tsize < 7250:
+            tsize = 7250
+        loop = round((tsize - 5700)/1400)
+        for i in range(1, loop):
+            command = ('$superflow addAction 1 server application -appdata-min 1400 -appdata-max 1400')
+            self.tfiles.pcreate(command)
+
+class FACEBOOK_BASE_HTTPS(SuperFlow):
+    def modify(self, *, tsize=None, filename=None):
+        if tsize < 7250:
+            tsize = 7250
+        loop = round((tsize - 5700)/1400)
+        for i in range(1, loop):
+            command = ('$superflow addAction 1 server application -appdata-min 1400 -appdata-max 1400')
+            self.tfiles.pcreate(command)
+
+class OUTLOOK_WEB_ONLINE_HTTPS(SuperFlow):
+    def modify(self, *, tsize=None, filename=None):
+        if tsize < 7250:
+            tsize = 7250
+        loop = round((tsize - 5700)/1400)
+        for i in range(1, loop):
+            command = ('$superflow addAction 1 server application -appdata-min 1400 -appdata-max 1400')
+            self.tfiles.pcreate(command)
+
+class SHAREPOINT_ONLINE_HTTPS(SuperFlow):
     def modify(self, *, tsize=None, filename=None):
         if tsize < 7250:
             tsize = 7250
@@ -129,9 +161,6 @@ class MSSQL_SELECT(SuperFlow):
     pass
 
 class MYSQL_SELECT(SuperFlow):
-    pass
-
-class SYSLOG(SuperFlow):
     pass
 
 class POSTGRESQL(SuperFlow):
