@@ -24,7 +24,7 @@ class AutoTest(object):
     def _gen_comp(self, comp_conf):
         comp = self._test.create_component(comp_conf['Type'], comp_conf['Name'])
         comp.configure('-description', '""')
-        comp.configure('-profile', '"{0}"'.format(comp_conf['Application Profile']))
+        comp.configure('-profile', '"{0}"'.format(self._prefix + comp_conf['Application Profile']))
         comp.configure('-rampDist.up', comp_conf['Ramp Up Duration'])
         comp.configure('-rampDist.upBehavior', 'full+data+close')
         comp.configure('-rampDist.steady', comp_conf['Steady State Duration'])
@@ -57,7 +57,7 @@ class AutoTest(object):
                     ap.add_superflow(self._prefix + superflow['Name'], 100)
                     ap.save()
                     comp_conf_cpy['Name'] = superflow['Name']
-                    comp_conf_cpy['Application Profile'] = self._prefix + superflow['Name'] + ' ap'
+                    comp_conf_cpy['Application Profile'] = superflow['Name'] + ' ap'
                     comp_conf_cpy['Max Sessions per sec'] = round((superflow['Weight']/total_weight)*comp_conf['Max Sessions per sec'])
                     self._gen_comp(comp_conf_cpy)
             else:
