@@ -100,6 +100,15 @@ class GOOGLE_HTTPS(SuperFlow):
             command = ('$superflow addAction 1 server application -appdata-min 1400 -appdata-max 1400')
             self.tfiles.pcreate(command)
 
+class PAN_UPDATES(SuperFlow):
+    def modify(self, *, tsize=None, filename=None):
+        if tsize < 7250:
+            tsize = 7250
+        loop = round((tsize - 5700)/1400)
+        for i in range(1, loop):
+            command = ('$superflow addAction 1 server application -appdata-min 1400 -appdata-max 1400')
+            self.tfiles.pcreate(command)
+
 class FACEBOOK_BASE_HTTPS(SuperFlow):
     def modify(self, *, tsize=None, filename=None):
         if tsize < 7250:
@@ -196,7 +205,13 @@ class SCCP(SuperFlow):
 class SIP(SuperFlow):
     pass
 
-class SNMP(SuperFlow):
+class SNMPv1(SuperFlow):
+    pass
+
+class SNMPv2c(SuperFlow):
+    pass
+
+class SNMPv3(SuperFlow):
     pass
 
 class SNMP_TIMEOUT(SuperFlow):
